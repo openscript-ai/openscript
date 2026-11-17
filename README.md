@@ -7,9 +7,12 @@
 
 **Irreversible actions wait for a person, even when the model has been fooled.**
 
-OpenScript sits between an AI agent and the tools it calls. It refuses calls
-outside rules you write, holds the ones that cannot be undone until a person
-approves that exact call, masks secrets and PII, and records every decision.
+## Project overview
+
+**What it does.** OpenScript sits between an AI agent and the tools it
+calls. It refuses calls outside rules you write, holds the ones that cannot
+be undone until a person approves that exact call, masks secrets and PII,
+and records every decision.
 None of it depends on recognising an attack, so it still holds when the model
 is fooled, wrong, or swapped for another.
 
@@ -17,18 +20,68 @@ It is for anyone building an agent whose tools have real effects, such as
 payments, email or a shell, in Python with any framework. It is version
 0.1.0 and alpha: the API may still change.
 
+**The problem it addresses.** A tool-using agent can be talked into acting
+by text it reads: a web page, an email, a payment reference. Current models
+resist most of these attacks, but a weaker model follows them, and pattern
+detectors catch 2 to 7% of attacks they were not written for. So neither
+the model nor detection is a boundary. An agent whose tools pay, send or
+delete needs one that holds when the model has been fooled.
+
 **[Try the live demo →](https://openscript-demo.vercel.app/)** The package
 runs in your browser tab, compiled to WebAssembly, with no backend.
 
-## What it is not
+## Safety approach
 
-- **Not an injection detector to rely on.** It has pattern detectors, and they
-  catch 2 to 7% of attacks they were not written for. The boundary is the
-  rules and the approvals, and the rules are only as tight as you write them.
-- **Not a compliance certification.** Its compliance presets assist a
-  program and certify nothing.
+How it helps prevent unauthorized or irreversible AI actions. Nothing here
+depends on recognising an attack: the attacker is assumed to be the model
+itself, from the first turn.
 
-## What it has been shown to do
+```
+agent ── calls a tool ──► SecureTool ── before: tool rules · session rule ──► refuse / hold for a person
+                              │
+                              ▼  the call that was checked, and nothing else
+                         effect side ── a person's token? ──► apply, and write it in the ledger
+                              │
+                              ▼
+                          after: mask secrets and PII · record
+```
+
+**Against unauthorized actions**, rules the agent cannot widen:
+
+- **Tool rules** limit which tools, arguments, recipients and amounts are
+  allowed, in YAML. With `default_deny`, a tool with no rule is refused.
+- **It fails closed.** A policy that raises, or an approval store that
+  cannot be reached, blocks the call.
+- **Every decision is recorded,** with secrets and PII masked.
+
+**Against irreversible actions**, a person, for that exact call, checked
+twice:
+
+- **Each tool is classed** as read, reversible or irreversible. Irreversible
+  means something leaves the environment, or no tool can put back what
+  changed.
+- **The session rule** remembers when a session has read something a
+  stranger wrote, and then holds the calls you list as irreversible.
+- **An approval** is single-use, expires in an hour, and is bound to the
+  tool, its exact arguments and the session.
+- **The effect side** ([`evals/ledger.py`](https://github.com/saintparish4/openscript/blob/master/evals/ledger.py)) stands
+  in front of each irreversible tool and applies a call only with a token
+  minted when a person approves it, under a key the agent never holds. It
+  is the boundary, because it is the only part the agent's process does not
+  own. It is a reference implementation, standard library only.
+
+## Supporting evidence
+
+### Demo
+
+- **[The live demo](https://openscript-demo.vercel.app/)** runs the package
+  in your browser.
+- **[A recorded walkthrough](https://github.com/saintparish4/openscript/raw/master/docs/demo.mp4)**, under a minute: a
+  tool rule refuses a form post that a web page provoked, a call is held
+  for a team lead and approved once, and an API key is masked before the
+  model is given it.
+
+### Test results
 
 Measured on [AgentDojo](https://github.com/ethz-spylab/agentdojo)'s banking
 and Slack suites, with Qwen2.5-7B-Instruct, a model that follows prompt
@@ -65,26 +118,83 @@ Every number, with its date, command and caveats, is in
 [`docs/metrics.md`](https://github.com/saintparish4/openscript/blob/master/docs/metrics.md). The claim and what it does not cover
 are in [the threat model](https://github.com/saintparish4/openscript/blob/master/docs/threat-model.md).
 
-## How it works
+To rerun the tests and the no-model replay, free and with no API key:
 
-```
-agent ── calls a tool ──► SecureTool ── before: tool rules · session rule ──► refuse / hold for a person
-                              │
-                              ▼  the call that was checked, and nothing else
-                         effect side ── a person's token? ──► apply, and write it in the ledger
-                              │
-                              ▼
-                          after: mask secrets and PII · record
+```bash
+make install && .venv/bin/pytest          # 909 pass, 16 skipped
+make agentdojo-replay
 ```
 
-- **Tool rules** limit which tools, arguments, recipients and amounts are
-  allowed, in YAML.
-- **The session rule** remembers when a session has read something a
-  stranger wrote, and then holds the calls you list as irreversible.
-- **An approval** is single-use, expires in an hour, and is bound to the
-  tool, its exact arguments and the session.
-- **The effect side** ([`evals/ledger.py`](https://github.com/saintparish4/openscript/blob/master/evals/ledger.py)) is a reference
-  implementation, standard library only.
+### Real-world usage: Countersign
+
+[Countersign](https://github.com/saintparish4/countersign) is a
+spending-control gateway between a Claude support agent and PayPal refunds.
+It installs `openscript-sdk` 0.1.0 from PyPI and uses it unmodified.
+
+- **What OpenScript does there:** it checks the shape of each refund request
+  (`ToolFirewallPolicy`), runs the policies fail-closed around the refund
+  tool (`SecureTool`), and binds each approval to one exact refund. A refund
+  above the merchant's auto-limit is held, and nothing is sent until a
+  member of staff approves it.
+- **What it was run against:** the PayPal sandbox, on 2026-11-12, with the
+  gateway and the agent in separate containers. An 80.00 refund was held
+  and sent only after approval, and a refund naming another customer's
+  order was denied. Its README lists the refund ids.
+
+It is by the same author, sandbox only and unaudited, so it shows the
+package carrying a real payment API's irreversible action, not a production
+deployment.
+
+### Documentation
+
+- [`docs/threat-model.md`](https://github.com/saintparish4/openscript/blob/master/docs/threat-model.md): the attacker, the claim, and
+  every path to an effect, marked mediated or not.
+- [`docs/red-team.md`](https://github.com/saintparish4/openscript/blob/master/docs/red-team.md): every bypass found and what became
+  of it.
+- [`docs/metrics.md`](https://github.com/saintparish4/openscript/blob/master/docs/metrics.md): every measurement, with its date and
+  command.
+- [`docs/submission.md`](https://github.com/saintparish4/openscript/blob/master/docs/submission.md): the AI-safety challenge
+  write-up, with each claim marked implemented, tested or theoretical.
+
+## Limitations
+
+**What it is not**
+
+- **Not an injection detector to rely on.** It has pattern detectors, and they
+  catch 2 to 7% of attacks they were not written for. The boundary is the
+  rules and the approvals, and the rules are only as tight as you write them.
+- **Not a compliance certification.** Its compliance presets assist a
+  program and certify nothing.
+- **Not a guard on what the agent says.** A reply that talks a person into
+  acting is out of scope.
+
+**Known weaknesses**
+
+- **The effect side is not shipped.** It is a reference implementation in
+  the test harness, not part of the package. Without it, the wrapper runs
+  in the agent's process, and an agent that can run code can reach the
+  function underneath.
+- **A shell can undo the hook.** A shell the agent controls can rewrite the
+  Claude Code hook's own files. That needs a boundary the agent does not
+  own: Claude Code's sandbox, another OS user, or the effect side.
+- **The session rule leaks.** It holds only after a read from a source you
+  listed. It missed the attacks that arrive through Slack's channel listing:
+  6 of 249 in the run above, and 27 of 617 in the no-model replay.
+- **It costs attention.** Asking on every irreversible call stops 59 of 97
+  ordinary tasks to ask a person.
+- **The person is trusted.** An approver who says yes to everything lets
+  every attack through, and how often people do that was not measured.
+
+**Areas for improvement**
+
+- **More models.** Containment was tested with one open 7B model, on two
+  suites, with one attack wording and one sample per case.
+- **Ship the effect side** in the package, with its key held outside the
+  agent's process.
+- **Ask less often,** since the cost of the strong claim is the main
+  obstacle to using it.
+- **A production deployment.** Countersign ran against a sandbox. Nothing
+  here has carried real money or real mail.
 
 ## Quick start
 
@@ -142,14 +252,8 @@ trail and an event server. The [guide](https://github.com/saintparish4/openscrip
 
 ## Further reading
 
-- [`docs/guide.md`](https://github.com/saintparish4/openscript/blob/master/docs/guide.md): every feature, its limits and its
-  configuration, including environment variables and options.
-- [`docs/metrics.md`](https://github.com/saintparish4/openscript/blob/master/docs/metrics.md): every measurement.
-- [`docs/threat-model.md`](https://github.com/saintparish4/openscript/blob/master/docs/threat-model.md) and
-  [`docs/red-team.md`](https://github.com/saintparish4/openscript/blob/master/docs/red-team.md): the claim and the attempts to
-  break it.
-- [`docs/submission.md`](https://github.com/saintparish4/openscript/blob/master/docs/submission.md): the AI-safety challenge
-  write-up.
+[`docs/guide.md`](https://github.com/saintparish4/openscript/blob/master/docs/guide.md) covers every feature, its limits and its
+configuration, including environment variables and options.
 
 ## Contributing
 
