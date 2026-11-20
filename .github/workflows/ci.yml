@@ -24,6 +24,12 @@ on:
       - ".gitignore"
       - ".github/ISSUE_TEMPLATE/**"
 
+# A newer push to a pull request supersedes the run still in flight. Runs on
+# master are never cancelled, so every merge keeps its own result.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -33,11 +39,12 @@ jobs:
       - uses: actions/setup-python@v5 
         with: 
           python-version: "3.12" 
+          cache: pip
 
-      - name: Install dependencies 
-        run: | 
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt 
+      # Black alone: the check reads source text and imports none of it. The
+      # version spec is the line in requirements.txt, so the two cannot drift.
+      - name: Install black
+        run: pip install "$(grep -E '^black' requirements.txt)"
 
       - name: Black format check
         run: black --check .
@@ -50,6 +57,7 @@ jobs:
       - uses: actions/setup-python@v5 
         with: 
           python-version: "3.12" 
+          cache: pip
 
       - name: Install dependencies
         run: |
@@ -83,6 +91,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
 
       - name: Install dependencies
         run: |
@@ -104,10 +113,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+          cache: pip
+          cache-dependency-path: pyproject.toml
 
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         run: |
@@ -141,10 +154,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+          cache: pip
+          cache-dependency-path: pyproject.toml
 
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache: npm
+          cache-dependency-path: site/package-lock.json
 
       - name: Install dependencies
         run: |
@@ -200,6 +217,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
 
       - uses: actions/setup-java@v4
         with:
@@ -229,6 +247,8 @@ jobs:
       - uses: actions/setup-python@v5 
         with: 
           python-version: "3.12" 
+          cache: pip
+          cache-dependency-path: pyproject.toml
 
       - name: Install build tools 
         run: python -m pip install --upgrade pip build 
