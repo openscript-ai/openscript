@@ -16,11 +16,13 @@ import { fileURLToPath } from "node:url";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WHEELS = path.join(HERE, "wheels");
 
-const wheelFiles = fs.existsSync(WHEELS)
-  ? fs.readdirSync(WHEELS).filter((f) => f.endsWith(".whl"))
-  : [];
-const openscript = wheelFiles.find((f) => f.startsWith("openscript-"));
-const structlog = wheelFiles.find((f) => f.startsWith("structlog-"));
+// Wheel names come from the manifest the build writes, the same file the page
+// fetches, so renaming the distribution cannot leave this probe looking for a
+// filename that is no longer built.
+const MANIFEST = path.join(WHEELS, "manifest.json");
+const manifest = fs.existsSync(MANIFEST) ? JSON.parse(fs.readFileSync(MANIFEST, "utf8")) : {};
+const openscript = manifest.openscript && path.basename(manifest.openscript);
+const structlog = manifest.structlog && path.basename(manifest.structlog);
 if (!openscript || !structlog) {
   console.error(`missing wheels in ${WHEELS}: run \`make browser-wheels\` first`);
   process.exit(1);

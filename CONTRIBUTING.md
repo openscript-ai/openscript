@@ -3,7 +3,7 @@
 ## Setup
 
 ```bash
-git clone https://github.com/saintparish4/openscript.git
+git clone https://github.com/openscript-ai/openscript.git
 cd openscript
 python -m venv .venv && source .venv/bin/activate   # .venv/Scripts/activate on Windows
 pip install -r requirements.txt

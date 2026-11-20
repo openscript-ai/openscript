@@ -1,8 +1,8 @@
 # OpenScript
 
-[![CI](https://github.com/saintparish4/openscript/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/saintparish4/openscript/actions/workflows/ci.yml)
+[![CI](https://github.com/openscript-ai/openscript/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/openscript-ai/openscript/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/openscript-sdk?label=pypi)](https://pypi.org/project/openscript-sdk/)
-[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue)](https://github.com/saintparish4/openscript/blob/master/LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue)](https://github.com/openscript-ai/openscript/blob/master/LICENSE)
 [![Live demo](https://img.shields.io/badge/demo-live%20in%20your%20browser-22c55e)](https://openscript-demo.vercel.app/)
 
 **Irreversible actions wait for a person, even when the model has been fooled.**
@@ -64,7 +64,7 @@ twice:
   stranger wrote, and then holds the calls you list as irreversible.
 - **An approval** is single-use, expires in an hour, and is bound to the
   tool, its exact arguments and the session.
-- **The effect side** ([`evals/ledger.py`](https://github.com/saintparish4/openscript/blob/master/evals/ledger.py)) stands
+- **The effect side** ([`evals/ledger.py`](https://github.com/openscript-ai/openscript/blob/master/evals/ledger.py)) stands
   in front of each irreversible tool and applies a call only with a token
   minted when a person approves it, under a key the agent never holds. It
   is the boundary, because it is the only part the agent's process does not
@@ -76,7 +76,7 @@ twice:
 
 - **[The live demo](https://openscript-demo.vercel.app/)** runs the package
   in your browser.
-- **[A recorded walkthrough](https://github.com/saintparish4/openscript/raw/master/docs/demo.mp4)**, under a minute: a
+- **[A recorded walkthrough](https://github.com/openscript-ai/openscript/raw/master/docs/demo.mp4)**, under a minute: a
   tool rule refuses a form post that a web page provoked, a call is held
   for a team lead and approved once, and an API key is masked before the
   model is given it.
@@ -110,13 +110,13 @@ injections. The protocol was frozen before the run.
   the no-model replay of all four suites it is 59 of 97. The session rule
   asks less and misses the attacks that arrive through Slack's channel
   listing.
-- **It was attacked before it was trusted.** A [red team](https://github.com/saintparish4/openscript/blob/master/docs/red-team.md)
+- **It was attacked before it was trusted.** A [red team](https://github.com/openscript-ai/openscript/blob/master/docs/red-team.md)
   searched for bypasses and published 7 findings, each committed as a
   failing test before its fix.
 
 Every number, with its date, command and caveats, is in
-[`docs/metrics.md`](https://github.com/saintparish4/openscript/blob/master/docs/metrics.md). The claim and what it does not cover
-are in [the threat model](https://github.com/saintparish4/openscript/blob/master/docs/threat-model.md).
+[`docs/metrics.md`](https://github.com/openscript-ai/openscript/blob/master/docs/metrics.md). The claim and what it does not cover
+are in [the threat model](https://github.com/openscript-ai/openscript/blob/master/docs/threat-model.md).
 
 To rerun the tests and the no-model replay, free and with no API key:
 
@@ -147,13 +147,13 @@ deployment.
 
 ### Documentation
 
-- [`docs/threat-model.md`](https://github.com/saintparish4/openscript/blob/master/docs/threat-model.md): the attacker, the claim, and
+- [`docs/threat-model.md`](https://github.com/openscript-ai/openscript/blob/master/docs/threat-model.md): the attacker, the claim, and
   every path to an effect, marked mediated or not.
-- [`docs/red-team.md`](https://github.com/saintparish4/openscript/blob/master/docs/red-team.md): every bypass found and what became
+- [`docs/red-team.md`](https://github.com/openscript-ai/openscript/blob/master/docs/red-team.md): every bypass found and what became
   of it.
-- [`docs/metrics.md`](https://github.com/saintparish4/openscript/blob/master/docs/metrics.md): every measurement, with its date and
+- [`docs/metrics.md`](https://github.com/openscript-ai/openscript/blob/master/docs/metrics.md): every measurement, with its date and
   command.
-- [`docs/submission.md`](https://github.com/saintparish4/openscript/blob/master/docs/submission.md): the AI-safety challenge
+- [`docs/submission.md`](https://github.com/openscript-ai/openscript/blob/master/docs/submission.md): the AI-safety challenge
   write-up, with each claim marked implemented, tested or theoretical.
 
 ## Limitations
@@ -239,20 +239,20 @@ rules:
 ```
 
 Also in the package: redaction of secrets and PII, input screening, an audit
-trail and an event server. The [guide](https://github.com/saintparish4/openscript/blob/master/docs/guide.md) covers each.
+trail and an event server. The [guide](https://github.com/openscript-ai/openscript/blob/master/docs/guide.md) covers each.
 
 ## Where it runs
 
 | Surface | Start here |
 |---|---|
-| Python agents and tools (LangChain, LangGraph, anything with `invoke`) | [the guide](https://github.com/saintparish4/openscript/blob/master/docs/guide.md) |
-| Claude Code, as a hook, with a strict profile that holds Bash after a web read | [the hook](https://github.com/saintparish4/openscript/blob/master/docs/guide.md#the-claude-code-hook-what-it-adds-and-what-it-does-not-do) |
-| Java agents, through the server | [`clients/java`](https://github.com/saintparish4/openscript/blob/master/clients/java/README.md) |
+| Python agents and tools (LangChain, LangGraph, anything with `invoke`) | [the guide](https://github.com/openscript-ai/openscript/blob/master/docs/guide.md) |
+| Claude Code, as a hook, with a strict profile that holds Bash after a web read | [the hook](https://github.com/openscript-ai/openscript/blob/master/docs/guide.md#the-claude-code-hook-what-it-adds-and-what-it-does-not-do) |
+| Java agents, through the server | [`clients/java`](https://github.com/openscript-ai/openscript/blob/master/clients/java/README.md) |
 | A browser, and a Chrome extension | [the demo](https://openscript-demo.vercel.app/) |
 
 ## Further reading
 
-[`docs/guide.md`](https://github.com/saintparish4/openscript/blob/master/docs/guide.md) covers every feature, its limits and its
+[`docs/guide.md`](https://github.com/openscript-ai/openscript/blob/master/docs/guide.md) covers every feature, its limits and its
 configuration, including environment variables and options.
 
 ## Contributing
@@ -261,10 +261,10 @@ configuration, including environment variables and options.
 make install && pytest && ruff check . && black --check . && mypy --strict openscript_sdk/ --exclude openscript_sdk/server/
 ```
 
-[CONTRIBUTING.md](https://github.com/saintparish4/openscript/blob/master/CONTRIBUTING.md) has the full checklist, including the
+[CONTRIBUTING.md](https://github.com/openscript-ai/openscript/blob/master/CONTRIBUTING.md) has the full checklist, including the
 Pyodide and Java checks. Changes to approvals, the session rule or the hook
 also run `pytest tests/bypass`.
 
 ## License
 
-Apache License 2.0. See [LICENSE](https://github.com/saintparish4/openscript/blob/master/LICENSE).
+Apache License 2.0. See [LICENSE](https://github.com/openscript-ai/openscript/blob/master/LICENSE).

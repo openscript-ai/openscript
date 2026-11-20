@@ -402,7 +402,7 @@ A deny before the agent runs means the agent never runs. A deny after it means t
 OpenScript installs from source. It is not published to PyPI.
 
 ```bash
-git clone https://github.com/saintparish4/openscript.git
+git clone https://github.com/openscript-ai/openscript.git
 cd openscript
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
